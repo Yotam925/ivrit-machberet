@@ -7,7 +7,7 @@
 
 - Next.js 14 (App Router) + TypeScript
 - Tailwind CSS, עם תמיכת RTL מלאה כברירת מחדל (`dir="rtl"`, `lang="he"` ב-`app/layout.tsx`)
-- Supabase — אימות משתמשים (Auth) ומסד נתונים (Postgres)
+- Supabase — אימות משתמשים (Auth), מסד נתונים (Postgres), ומודל תוכן לימודי
 
 ## הרצה מקומית
 
@@ -40,13 +40,11 @@
    NEXT_PUBLIC_SUPABASE_URL=...
    NEXT_PUBLIC_SUPABASE_ANON_KEY=...
    ```
-3. בפרויקט: SQL Editor → New query — מדביקים את כל התוכן של
-   `supabase/migrations/0001_profiles.sql` ולוחצים Run. זה יוצר את טבלת
-   `profiles` ואת הטריגר שיוצר שורת פרופיל אוטומטית בכל הרשמה.
+3. בפרויקט: SQL Editor → New query — מדביקים את כל התוכן של כל קובץ
+   בתיקיית `supabase/migrations/` (לפי סדר המספרים) ולוחצים Run.
 4. ברירת המחדל של Supabase דורשת אישור אימייל לפני התחברות ראשונה. אם רוצים
    שמשתמש חדש יתחבר מיד אחרי ההרשמה (נוח לבדיקות), אפשר לכבות את זה תחת
-   Authentication → Providers → Email → "Confirm email". האפליקציה תומכת
-   בשני המצבים בכל מקרה.
+   Authentication → Providers → Email → "Confirm email".
 5. מריצים `npm run dev` ונכנסים ל-`/login`.
 
 ## מבנה תיקיות
@@ -54,12 +52,51 @@
 - `app/` — נתיבי Next.js (App Router)
   - `app/(auth)/login` — טופס התחברות/הרשמה (`/login`)
   - `app/learner/dashboard` — אזור הלומד, מוגן על ידי middleware (`/learner/dashboard`)
+  - `app/learner/level-test` — מבחן רמה לחניך חדש (`/learner/level-test`)
   - `app/commander/dashboard` — אזור המפקד/מדריך, מוגן על ידי middleware (`/commander/dashboard`)
+  - `app/api/lessons` — API לשליפה/יצירה של שיעורים
 - `middleware.ts` — מפנה משתמשים לא מחוברים ל-`/login`, ומוודא שכל תפקיד רואה רק
   את האזור שלו
-- `lib/` — קוד משותף, כולל חיבור ל-Supabase (`lib/supabase/`)
+- `lib/` — קוד משותף: חיבור ל-Supabase (`lib/supabase/`), מבחן הרמה (`lib/placement-test.ts`)
 - `components/` — רכיבי UI משותפים
 - `supabase/migrations/` — סכמת מסד הנתונים (SQL) שמריצים ידנית ב-Supabase
+
+## מודל תוכן לימודי
+
+- `profiles.level` — הרמה שנקבעה למשתמש (`beginner`/`intermediate`/`advanced`), נשמרת
+  אוטומטית בסיום מבחן הרמה. חניך שעוד לא עשה את המבחן מופנה אליו אוטומטית
+  מה-dashboard.
+- `lessons` — שיעורים: `id`, `title`, `category` (`hebrew`/`army`/`zionism`), `level`,
+  `sort_order`, `content` (jsonb — ראו מבנה למטה). כרגע מכיל 4 שיעורי דמה.
+- `user_progress` — טבלה שמוכנה לשלב הבא (עדיין אין מסך שכותב אליה): מי השלים
+  איזה שיעור, עם איזה ציון.
+- `GET /api/lessons` — רשימת שיעורים, אפשר לסנן עם `?category=` ו/או `?level=`.
+  דורש התחברות.
+- `POST /api/lessons` — יצירת שיעור חדש. דורש התחברות **וגם** תפקיד מפקד/מדריך
+  (נבדק גם בקוד וגם ב-RLS של מסד הנתונים).
+
+### מבנה ה-content (jsonb)
+
+כל שיעור הוא רשימה של "sections" מסוגים שונים, כדי שאפשר יהיה להוסיף סוגי
+תוכן חדשים בעתיד בלי migration חדשה:
+
+```json
+{
+  "sections": [
+    { "type": "text", "body": "טקסט הסבר רגיל" },
+    {
+      "type": "vocabulary",
+      "items": [{ "term": "שלום", "meaning": "hello" }]
+    },
+    {
+      "type": "quiz",
+      "questions": [
+        { "prompt": "...", "options": ["...", "..."], "correctIndex": 0 }
+      ]
+    }
+  ]
+}
+```
 
 ## סקריפטים
 
@@ -71,4 +108,6 @@
 
 ## סטטוס
 
-הרשמה/התחברות עם תפקידים (חניך/מפקד) מוכנה. עדיין אין תוכן לימודי — זה השלב הבא.
+הרשמה/התחברות עם תפקידים (חניך/מפקד), מבחן רמה, ומודל תוכן לימודי בסיסי (4
+שיעורי דמה) מוכנים. עדיין אין תוכן לימודי אמיתי ואין מסך לצפייה/השלמת שיעור —
+זה השלב הבא.
