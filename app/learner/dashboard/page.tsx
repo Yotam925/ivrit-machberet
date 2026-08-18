@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { signOut } from "@/app/(auth)/login/actions";
 import { isSupabaseConfigured } from "@/lib/supabase/is-configured";
@@ -39,7 +40,12 @@ export default async function LearnerDashboardPage() {
       <p className="rounded-full bg-blue-50 px-4 py-1 text-sm font-medium text-blue-700">
         רמה: {LEVEL_LABELS_HE[level]}
       </p>
-      <p className="text-gray-600">אזור הלומד — בקרוב יתווסף כאן תוכן לימודי.</p>
+      <Link
+        href="/learner/lessons"
+        className="rounded-lg bg-blue-600 px-6 py-2 font-medium text-white transition hover:bg-blue-700"
+      >
+        השיעורים שלי
+      </Link>
       <form action={signOut}>
         <button type="submit" className="text-sm font-medium text-blue-600 hover:underline">
           התנתקות

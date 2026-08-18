@@ -18,16 +18,30 @@ export type Profile = {
 
 export type LessonCategory = "hebrew" | "army" | "zionism";
 
-export type LessonContentSection =
+export type ContentBlock =
   | { type: "text"; body: string }
-  | { type: "vocabulary"; items: { term: string; meaning: string }[] }
+  | { type: "vocabulary"; items: { term: string; meaning: string }[] };
+
+export type Exercise =
+  | { type: "multiple_choice"; prompt: string; options: string[]; correctIndex: number }
   | {
-      type: "quiz";
-      questions: { prompt: string; options: string[]; correctIndex: number }[];
-    };
+      type: "fill_blank";
+      sentenceBefore: string;
+      sentenceAfter: string;
+      options: string[];
+      correctIndex: number;
+    }
+  | { type: "matching"; pairs: { left: string; right: string }[] };
+
+export type LessonStage =
+  | { kind: "video"; title: string; videoUrl: string | null; description?: string }
+  | { kind: "content"; title: string; sections: ContentBlock[] }
+  | { kind: "practice"; title: string; exercises: Exercise[] }
+  | { kind: "questions"; title: string; exercises: Exercise[] }
+  | { kind: "reflection"; title: string; prompt: string };
 
 export type LessonContent = {
-  sections: LessonContentSection[];
+  stages: LessonStage[];
 };
 
 export type Lesson = {
@@ -48,3 +62,12 @@ export type UserProgress = {
   score: number | null;
   completed_at: string | null;
 };
+
+export function isPlayableLessonContent(content: unknown): content is LessonContent {
+  return (
+    typeof content === "object" &&
+    content !== null &&
+    Array.isArray((content as LessonContent).stages) &&
+    (content as LessonContent).stages.length > 0
+  );
+}

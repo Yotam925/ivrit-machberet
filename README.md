@@ -53,13 +53,17 @@
   - `app/(auth)/login` — טופס התחברות/הרשמה (`/login`)
   - `app/learner/dashboard` — אזור הלומד, מוגן על ידי middleware (`/learner/dashboard`)
   - `app/learner/level-test` — מבחן רמה לחניך חדש (`/learner/level-test`)
+  - `app/learner/lessons` — "השיעורים שלי", רשימת שיעורים לפי רמה עם סטטוס (`/learner/lessons`)
+  - `app/learner/lessons/[id]` — עמוד היחידה בפועל, מריץ את `LessonPlayer`
   - `app/commander/dashboard` — אזור המפקד/מדריך, מוגן על ידי middleware (`/commander/dashboard`)
   - `app/api/lessons` — API לשליפה/יצירה של שיעורים
 - `middleware.ts` — מפנה משתמשים לא מחוברים ל-`/login`, ומוודא שכל תפקיד רואה רק
   את האזור שלו
 - `lib/` — קוד משותף: חיבור ל-Supabase (`lib/supabase/`), מבחן הרמה (`lib/placement-test.ts`)
-- `components/` — רכיבי UI משותפים
-- `supabase/migrations/` — סכמת מסד הנתונים (SQL) שמריצים ידנית ב-Supabase
+- `components/` — רכיבי UI משותפים, כולל `LessonPlayer.tsx` ומנוע התרגול
+  (`components/lesson-stages/`, `components/exercises/`)
+- `supabase/migrations/` — סכמת מסד הנתונים (SQL), מוחלת עם `npx supabase db push`
+  (או ידנית ב-SQL Editor)
 
 ## מודל תוכן לימודי
 
@@ -67,36 +71,54 @@
   אוטומטית בסיום מבחן הרמה. חניך שעוד לא עשה את המבחן מופנה אליו אוטומטית
   מה-dashboard.
 - `lessons` — שיעורים: `id`, `title`, `category` (`hebrew`/`army`/`zionism`), `level`,
-  `sort_order`, `content` (jsonb — ראו מבנה למטה). כרגע מכיל 4 שיעורי דמה.
-- `user_progress` — טבלה שמוכנה לשלב הבא (עדיין אין מסך שכותב אליה): מי השלים
-  איזה שיעור, עם איזה ציון.
+  `sort_order`, `content` (jsonb — ראו מבנה למטה).
+- `user_progress` — מי השלים איזה שיעור, עם איזה ציון (`completed`, `score`, `completed_at`).
+  נכתבת אוטומטית: שורה נוצרת (completed=false) כשנכנסים ליחידה, ומתעדכנת
+  (completed=true + ציון) כשמסיימים אותה.
 - `GET /api/lessons` — רשימת שיעורים, אפשר לסנן עם `?category=` ו/או `?level=`.
   דורש התחברות.
 - `POST /api/lessons` — יצירת שיעור חדש. דורש התחברות **וגם** תפקיד מפקד/מדריך
   (נבדק גם בקוד וגם ב-RLS של מסד הנתונים).
 
-### מבנה ה-content (jsonb)
+### מנוע היחידה (LessonPlayer)
 
-כל שיעור הוא רשימה של "sections" מסוגים שונים, כדי שאפשר יהיה להוסיף סוגי
-תוכן חדשים בעתיד בלי migration חדשה:
+כל יחידה בנויה מרצף שלבים קבוע (per הפק"א): **וידאו → תוכן → תרגול → שאלות →
+משימת חשיבה**. ה-`content` (jsonb) של שיעור "מלא" נראה כך:
 
 ```json
 {
-  "sections": [
-    { "type": "text", "body": "טקסט הסבר רגיל" },
-    {
-      "type": "vocabulary",
-      "items": [{ "term": "שלום", "meaning": "hello" }]
-    },
-    {
-      "type": "quiz",
-      "questions": [
-        { "prompt": "...", "options": ["...", "..."], "correctIndex": 0 }
-      ]
-    }
+  "stages": [
+    { "kind": "video", "title": "...", "videoUrl": null, "description": "..." },
+    { "kind": "content", "title": "...", "sections": [
+      { "type": "text", "body": "..." },
+      { "type": "vocabulary", "items": [{ "term": "שלום", "meaning": "hello" }] }
+    ]},
+    { "kind": "practice", "title": "...", "exercises": [ /* ראו סוגי תרגילים למטה */ ] },
+    { "kind": "questions", "title": "...", "exercises": [ /* אותם סוגי תרגילים */ ] },
+    { "kind": "reflection", "title": "...", "prompt": "שאלת חשיבה פתוחה" }
   ]
 }
 ```
+
+- `video` — אם `videoUrl` הוא `null`, מוצג placeholder ("וידאו יתווסף בהמשך").
+  אין עדיין קול/AI — זה שלב מבני בלבד.
+- `practice`/`questions` — אותו מנגנון תרגילים בדיוק; ההבדל היחיד: רק תוצאת
+  ה-`questions` נכנסת לציון הסופי שנשמר ב-`user_progress`. `practice` הוא
+  לתרגול בלבד.
+- `reflection` — טקסט חופשי, לא נשמר ולא מצוין (אין AI לבדוק אותו כרגע — זה
+  שלב מחשבה בלבד).
+
+שלושה סוגי תרגילים נתמכים בתוך `exercises`:
+
+```json
+{ "type": "multiple_choice", "prompt": "...", "options": ["...", "..."], "correctIndex": 0 }
+{ "type": "fill_blank", "sentenceBefore": "ה", "sentenceAfter": " שלי גר בחיפה.", "options": ["...", "..."], "correctIndex": 0 }
+{ "type": "matching", "pairs": [{ "left": "אח", "right": "brother" }] }
+```
+
+שיעורים ישנים (מ-migration 0002) עדיין בפורמט הישן (`sections` בלי `stages`) —
+עמוד היחידה מזהה את זה ומציג הודעת "התוכן עדיין לא מוכן" במקום לקרוס. שיעור
+דמה מלא בפורמט החדש: "שיעור 5: המשפחה שלי" (migration 0003).
 
 ## סקריפטים
 
@@ -108,6 +130,8 @@
 
 ## סטטוס
 
-הרשמה/התחברות עם תפקידים (חניך/מפקד), מבחן רמה, ומודל תוכן לימודי בסיסי (4
-שיעורי דמה) מוכנים. עדיין אין תוכן לימודי אמיתי ואין מסך לצפייה/השלמת שיעור —
-זה השלב הבא.
+הרשמה/התחברות עם תפקידים (חניך/מפקד), מבחן רמה, ומנוע יחידת לימוד מלא (וידאו →
+תוכן → תרגול → שאלות → משימת חשיבה, עם multiple choice / השלמת משפט / גרירה-והתאמה)
+מוכנים ונבדקו מקצה לקצה. שיעור דמה מלא אחד ("המשפחה שלי") ועוד 4 שיעורים
+בפורמט ישן/חלקי. עדיין אין: קול/AI, תוכן לימודי אמיתי, ניהול שיעורים ממסך
+(רק דרך ה-API/SQL).
