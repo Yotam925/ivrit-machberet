@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/is-configured";
 import { SupabaseSetupNotice } from "@/components/SupabaseSetupNotice";
-import { LEVEL_LABELS_HE, type UserLevel } from "@/lib/supabase/types";
+import { LEVEL_LABELS_HE, isPlayableLessonContent, type UserLevel } from "@/lib/supabase/types";
 
 type Status = "not_started" | "in_progress" | "completed";
 
@@ -54,7 +54,7 @@ export default async function MyLessonsPage() {
   const [{ data: lessons }, { data: progress }] = await Promise.all([
     supabase
       .from("lessons")
-      .select("id, title, category, level, sort_order")
+      .select("id, title, category, level, sort_order, content")
       .eq("level", level)
       .order("sort_order", { ascending: true }),
     supabase.from("user_progress").select("lesson_id, completed, score").eq("user_id", user.id),
@@ -74,6 +74,27 @@ export default async function MyLessonsPage() {
       ) : (
         <ul className="flex flex-col gap-3">
           {lessons.map((lesson) => {
+            const ready = isPlayableLessonContent(lesson.content);
+
+            if (!ready) {
+              return (
+                <li
+                  key={lesson.id}
+                  className="flex cursor-not-allowed items-center justify-between rounded-lg border border-gray-100 bg-gray-50 px-4 py-3 opacity-60"
+                >
+                  <div>
+                    <p className="font-medium">{lesson.title}</p>
+                    <p className="text-sm text-gray-500">
+                      {CATEGORY_LABELS[lesson.category] ?? lesson.category}
+                    </p>
+                  </div>
+                  <span className="rounded-full bg-gray-200 px-3 py-1 text-sm font-medium text-gray-500">
+                    בקרוב
+                  </span>
+                </li>
+              );
+            }
+
             const p = progressByLesson.get(lesson.id);
             const status: Status = p?.completed ? "completed" : p ? "in_progress" : "not_started";
             return (
