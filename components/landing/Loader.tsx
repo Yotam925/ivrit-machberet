@@ -72,6 +72,10 @@ export function Loader({ ready, onDone }: { ready: boolean; onDone: () => void }
         opacity: leaving ? 0 : 1,
         transition: "opacity 0.55s cubic-bezier(0.65,0,0.35,1)",
         pointerEvents: leaving ? "none" : "auto",
+        // iOS ignores body overflow:hidden for touch — block scroll gestures
+        // that start on the overlay itself as well.
+        touchAction: "none",
+        overscrollBehavior: "none",
       }}
     >
       <div className="flex flex-col items-center" style={{ gap: 26 }}>

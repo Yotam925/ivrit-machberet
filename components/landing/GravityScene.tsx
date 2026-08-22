@@ -123,6 +123,10 @@ export function GravityScene({
     );
     camera.position.set(0, 0, 11);
 
+    // Mobile quality tier: fewer balls (per spec), plus lighter shadows and
+    // sphere geometry so mid-range phones hold a smooth frame rate.
+    const isMobile = window.innerWidth < 768;
+
     let renderer: THREE.WebGLRenderer;
     try {
       renderer = new THREE.WebGLRenderer({
@@ -153,8 +157,8 @@ export function GravityScene({
     const keyLight = new THREE.DirectionalLight(0xffffff, 1.4);
     keyLight.position.set(-6, 10, 8);
     keyLight.castShadow = true;
-    keyLight.shadow.mapSize.width = 2048;
-    keyLight.shadow.mapSize.height = 2048;
+    keyLight.shadow.mapSize.width = isMobile ? 1024 : 2048;
+    keyLight.shadow.mapSize.height = isMobile ? 1024 : 2048;
     keyLight.shadow.camera.near = 0.5;
     keyLight.shadow.camera.far = 30;
     keyLight.shadow.camera.left = -8;
@@ -186,7 +190,6 @@ export function GravityScene({
     };
     updateFrustumBounds();
 
-    const isMobile = window.innerWidth < 768;
     const ballCount = isMobile ? 54 : 96;
 
     const palette = getDynamicColors(ballColor);
@@ -205,7 +208,7 @@ export function GravityScene({
       glass: new THREE.Color(),
     };
 
-    const sphereGeometry = new THREE.SphereGeometry(1, 48, 48);
+    const sphereGeometry = new THREE.SphereGeometry(1, isMobile ? 32 : 48, isMobile ? 32 : 48);
     const balls: Ball[] = [];
     for (let i = 0; i < ballCount; i++) {
       let radius = 0.33;

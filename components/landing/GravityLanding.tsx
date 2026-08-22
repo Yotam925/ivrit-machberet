@@ -116,7 +116,7 @@ function StatCard({
       className="rounded-[1.4rem] bg-gradient-to-b from-white/80 via-white/30 to-white/10 p-px transition-transform duration-300 hover:-translate-y-0.5"
       style={{ boxShadow: "0 14px 40px -12px rgba(14,42,197,0.18)" }}
     >
-      <div className="relative overflow-hidden rounded-[1.35rem] bg-white/25 px-6 py-5 backdrop-blur-xl">
+      <div className="relative overflow-hidden rounded-[1.35rem] bg-white/60 px-6 py-5 backdrop-blur-none md:bg-white/25 md:backdrop-blur-xl">
         <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/90 to-transparent" />
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -159,21 +159,36 @@ export function GravityLanding() {
 
   const startedRef = useRef(false);
 
-  /* pointer tracking (drives ball repulsion globally) */
+  /* pointer tracking (drives ball repulsion globally) — pointer events so a
+     touch drag repels the field exactly like a mouse. On touch there is no
+     persistent cursor, so lifting the finger parks the pointer offscreen
+     instead of leaving a stale repulsion point where the finger last was. */
   useEffect(() => {
-    const onPointerMove = (e: PointerEvent) => {
+    const setFromEvent = (e: PointerEvent) => {
       mouseRef.current.x = (e.clientX / window.innerWidth) * 2 - 1;
       mouseRef.current.y = -(e.clientY / window.innerHeight) * 2 + 1;
     };
-    const onDown = () => (mouseRef.current.isDown = true);
-    const onUp = () => (mouseRef.current.isDown = false);
+    const onPointerMove = (e: PointerEvent) => setFromEvent(e);
+    const onPointerDown = (e: PointerEvent) => {
+      setFromEvent(e);
+      mouseRef.current.isDown = true;
+    };
+    const onPointerUp = (e: PointerEvent) => {
+      mouseRef.current.isDown = false;
+      if (e.pointerType !== "mouse") {
+        mouseRef.current.x = 99;
+        mouseRef.current.y = 99;
+      }
+    };
     window.addEventListener("pointermove", onPointerMove);
-    window.addEventListener("mousedown", onDown);
-    window.addEventListener("mouseup", onUp);
+    window.addEventListener("pointerdown", onPointerDown);
+    window.addEventListener("pointerup", onPointerUp);
+    window.addEventListener("pointercancel", onPointerUp);
     return () => {
       window.removeEventListener("pointermove", onPointerMove);
-      window.removeEventListener("mousedown", onDown);
-      window.removeEventListener("mouseup", onUp);
+      window.removeEventListener("pointerdown", onPointerDown);
+      window.removeEventListener("pointerup", onPointerUp);
+      window.removeEventListener("pointercancel", onPointerUp);
     };
   }, []);
 
@@ -388,7 +403,7 @@ export function GravityLanding() {
       </header>
 
       {/* section 01 — hero */}
-      <section className="pointer-events-none relative z-10 flex min-h-[100svh] items-end">
+      <section className="pointer-events-none relative z-10 flex landing-section items-end">
         <div
           className="w-full px-6 pb-12 md:px-12 md:pb-14"
           style={{ opacity: started ? 1 : 0, transition: `opacity 0.6s ${EASE_OUT}` }}
@@ -434,7 +449,7 @@ export function GravityLanding() {
       {/* section 02 — the drop */}
       <section
         id="derekh"
-        className="pointer-events-none relative z-10 flex min-h-[100svh] items-center px-6 pb-40 pt-32 md:px-12 md:pt-40"
+        className="pointer-events-none relative z-10 flex landing-section items-center px-6 pb-40 pt-32 md:px-12 md:pt-40"
       >
         <div className="grid w-full grid-cols-1 items-start gap-10 lg:grid-cols-12 lg:gap-16">
           <div className="pointer-events-auto lg:col-span-7">
@@ -492,7 +507,7 @@ export function GravityLanding() {
       {/* section 03 — the heart */}
       <section
         id="hibur"
-        className="pointer-events-none relative z-10 flex min-h-[100svh] flex-col justify-between px-6 py-36 md:px-12 md:py-44"
+        className="pointer-events-none relative z-10 flex landing-section flex-col justify-between px-6 py-36 md:px-12 md:py-44"
       >
         <div className="pointer-events-auto">
           <Reveal>
@@ -519,9 +534,15 @@ export function GravityLanding() {
             </p>
           </Reveal>
           <Reveal delay={0.28}>
-            <div className="mt-7 inline-flex items-center gap-2 rounded-full border border-white/55 bg-white/35 px-4 py-2.5 text-neutral-700 backdrop-blur-md">
+            <div className="mt-7 inline-flex items-center gap-2 rounded-full border border-white/55 bg-white/60 px-4 py-2.5 text-neutral-700 backdrop-blur-none md:bg-white/35 md:backdrop-blur-md">
               <MousePointerIcon className="h-3.5 w-3.5" />
-              <span className="font-landing-mono text-[10px] uppercase" style={{ letterSpacing: "0.2em" }}>
+              <span className="font-landing-mono text-[10px] uppercase md:hidden" style={{ letterSpacing: "0.2em" }}>
+                עבור עם האצבע
+              </span>
+              <span
+                className="font-landing-mono hidden text-[10px] uppercase md:inline"
+                style={{ letterSpacing: "0.2em" }}
+              >
                 עבור עם הסמן
               </span>
             </div>
@@ -532,7 +553,7 @@ export function GravityLanding() {
       {/* section 04 — release */}
       <section
         id="hamraa"
-        className="pointer-events-none relative z-10 flex min-h-[100svh] flex-col items-center justify-center px-6 py-36 text-center md:px-12 md:py-44"
+        className="pointer-events-none relative z-10 flex landing-section flex-col items-center justify-center px-6 py-36 text-center md:px-12 md:py-44"
       >
         <div className="pointer-events-auto mx-auto max-w-3xl">
           <Reveal>

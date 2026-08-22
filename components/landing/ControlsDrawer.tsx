@@ -131,7 +131,7 @@ export function ControlsDrawer({
       />
       <aside
         data-landing-drawer
-        className="fixed right-0 top-0 z-50 h-full w-full overflow-y-auto border-l border-neutral-100 bg-white/95 p-8 backdrop-blur-xl sm:w-[420px]"
+        className="fixed right-0 top-0 z-50 h-full w-full overflow-y-auto border-l border-neutral-100 bg-white p-8 backdrop-blur-none sm:w-[420px] sm:bg-white/95 sm:backdrop-blur-xl"
         style={{
           transform: open ? "translateX(0)" : "translateX(100%)",
           transition: "transform 0.55s cubic-bezier(0.32,1.25,0.46,1)",

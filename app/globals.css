@@ -22,6 +22,14 @@ body {
   font-family: var(--font-jetbrains-mono), var(--font-heebo), monospace;
 }
 
+/* Full-viewport section height with a fallback chain: 100vh for browsers
+   without svh support (iOS < 15.4), 100svh where available so the mobile
+   URL bar doesn't cause jumps. */
+.landing-section {
+  min-height: 100vh;
+  min-height: 100svh;
+}
+
 @keyframes landing-marquee {
   from {
     transform: translateX(0);
