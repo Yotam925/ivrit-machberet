@@ -6,3 +6,45 @@ html,
 body {
   height: 100%;
 }
+
+/* ---------- landing page (Gravity) ---------- */
+
+.font-landing {
+  font-family: var(--font-heebo), sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.font-landing-display {
+  font-family: var(--font-space-grotesk), var(--font-heebo), sans-serif;
+}
+
+.font-landing-mono {
+  font-family: var(--font-jetbrains-mono), var(--font-heebo), monospace;
+}
+
+@keyframes landing-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.landing-marquee {
+  animation: landing-marquee 26s linear infinite;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(14, 42, 197, 0.18);
+  border-radius: 99px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(14, 42, 197, 0.32);
+}
