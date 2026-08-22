@@ -8,7 +8,7 @@ const heebo = Heebo({
 });
 
 export const metadata: Metadata = {
-  title: "עברית מחברת",
+  title: "לומדים עברית",
   description:
     "פלטפורמה ללימוד עברית, הכנה לצה\"ל, והיכרות עם החברה הישראלית וציונות",
 };

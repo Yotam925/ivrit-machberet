@@ -348,7 +348,7 @@ export function GravityLanding() {
           className="font-landing-display pointer-events-auto text-lg font-black text-neutral-950 md:text-xl"
           style={{ letterSpacing: "0.04em" }}
         >
-          עברית מחברת
+          לומדים עברית
         </Link>
 
         <nav className="pointer-events-auto hidden items-center gap-12 md:flex">
@@ -426,14 +426,13 @@ export function GravityLanding() {
 
             <div className="pointer-events-auto md:w-[260px]" style={inStyle(0.45)}>
               <p className="text-[15px] font-medium leading-[1.35] text-neutral-800">
-                עברית מחברת היא הדרך ללמוד עברית, להתכונן לשירות ולהרגיש שייכים — צעד אחר צעד, בלי
-                רעש מיותר.
+                כאן לומדים עברית, מתכוננים לשירות ומרגישים שייכים — צעד אחר צעד, בלי רעש מיותר.
               </p>
               <p
                 className="font-landing-mono mt-5 text-[10px] uppercase text-neutral-500"
                 style={{ letterSpacing: "0.18em" }}
               >
-                © 2026 — עברית מחברת
+                © 2026 — לומדים עברית
               </p>
               <div className="mt-4 hidden animate-pulse items-center gap-2 text-neutral-500 md:flex">
                 <ArrowDownIcon className="h-3.5 w-3.5" />
@@ -633,7 +632,7 @@ export function GravityLanding() {
                 href="/login"
                 className="group mt-10 inline-flex items-center gap-4 rounded-full border border-white/15 bg-white/5 py-2 pl-2 pr-7 transition hover:bg-white/10"
               >
-                <span className="text-base font-medium md:text-lg">כניסה לעברית מחברת</span>
+                <span className="text-base font-medium md:text-lg">כניסה לאתר</span>
                 <span
                   className="flex h-10 w-10 items-center justify-center rounded-full"
                   style={{
@@ -701,11 +700,11 @@ export function GravityLanding() {
           <div className="mt-20 flex flex-col items-start justify-between gap-4 border-t border-white/10 pt-7 sm:flex-row sm:items-center md:mt-28">
             <div className="flex items-center gap-3">
               <span className="font-landing-display font-black" style={{ letterSpacing: "0.04em" }}>
-                עברית מחברת
+                לומדים עברית
               </span>
               <span className="h-2 w-2 rounded-full" style={{ background: "#2f69ff" }} />
               <span className="font-landing-mono text-[11px] text-white/40">
-                © 2026 עברית מחברת — כל הזכויות שמורות.
+                © 2026 לומדים עברית — כל הזכויות שמורות.
               </span>
             </div>
           </div>

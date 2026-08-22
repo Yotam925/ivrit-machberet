@@ -32,7 +32,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Search
   return (
     <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center gap-6 px-6 py-12">
       <div className="text-center">
-        <h1 className="text-2xl font-bold">עברית מחברת</h1>
+        <h1 className="text-2xl font-bold">לומדים עברית</h1>
         <p className="mt-1 text-gray-600">{mode === "signin" ? "התחברות" : "הרשמה"}</p>
       </div>
 
