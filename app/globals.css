@@ -197,6 +197,16 @@ button.alm-tag:hover {
   display: block;
 }
 
+/* reading passage body */
+.alm-passage {
+  margin: 0 0 clamp(14px, 1.6vw, 22px);
+  font-size: clamp(15.5px, 1.3vw, 18px);
+  line-height: 1.75;
+  color: #3a3733;
+  white-space: pre-wrap;
+  max-width: 62ch;
+}
+
 /* answer options (learner quiz) */
 .alm-card__options {
   display: flex;

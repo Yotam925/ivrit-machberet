@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { signOut } from "@/app/(auth)/login/actions";
 import { isSupabaseConfigured } from "@/lib/supabase/is-configured";
 import { SupabaseSetupNotice } from "@/components/SupabaseSetupNotice";
+import { InviteCodePanel } from "@/components/commander/InviteCodePanel";
 
 export default async function CommanderDashboardPage() {
   if (!isSupabaseConfigured()) {
@@ -28,18 +29,32 @@ export default async function CommanderDashboardPage() {
   return (
     <main className="mx-auto flex min-h-screen max-w-md flex-col items-center justify-center gap-4 px-6 text-center">
       <h1 className="text-2xl font-bold">
-        ברוך הבא{profile?.full_name ? `, ${profile.full_name}` : ""}!
+        ברוכים הבאים{profile?.full_name ? `, ${profile.full_name}` : ""}!
       </h1>
-      <p className="text-gray-600">אזור המפקד/מדריך — בקרוב יתווסף כאן ניהול קבוצה.</p>
+      <p className="text-gray-600">
+        המרחב שלכם — החיילים שלכם, הציונים שלהם והתוכן שאתם שולחים.
+      </p>
       <Link
-        href="/commander/exercises/new"
+        href="/commander/soldiers"
         className="rounded-lg bg-blue-600 px-5 py-2.5 font-medium text-white hover:bg-blue-700"
       >
-        + צור תרגיל/מבחן
+        החיילים שלי
       </Link>
-      <Link href="/commander/exercises" className="text-sm font-medium text-blue-600 hover:underline">
-        התרגילים שיצרתי
+      <Link
+        href="/commander/exercises/new"
+        className="rounded-lg border border-blue-600 px-5 py-2.5 font-medium text-blue-600 hover:bg-blue-50"
+      >
+        + יצירת תרגיל/מבחן
       </Link>
+      <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2">
+        <Link href="/commander/exercises" className="text-sm font-medium text-blue-600 hover:underline">
+          התרגילים שיצרתי
+        </Link>
+        <Link href="/commander/directory" className="text-sm font-medium text-blue-600 hover:underline">
+          מאגר החיילים
+        </Link>
+      </div>
+      <InviteCodePanel />
       <form action={signOut}>
         <button type="submit" className="text-sm font-medium text-blue-600 hover:underline">
           התנתקות

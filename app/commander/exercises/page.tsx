@@ -3,13 +3,12 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/is-configured";
 import { SupabaseSetupNotice } from "@/components/SupabaseSetupNotice";
-import { EXERCISE_MODE_LABELS_HE, type ExerciseRecord } from "@/lib/supabase/types";
+import {
+  EXERCISE_MODE_LABELS_HE,
+  EXERCISE_TYPE_LABELS_HE as TYPE_LABELS_HE,
+  type ExerciseRecord,
+} from "@/lib/supabase/types";
 import { DeleteExerciseButton } from "@/components/DeleteExerciseButton";
-
-const TYPE_LABELS_HE: Record<ExerciseRecord["type"], string> = {
-  flashcards: "כרטיסיות",
-  quiz: "מבחן אמריקאי",
-};
 
 export default async function CommanderExercisesPage() {
   if (!isSupabaseConfigured()) {

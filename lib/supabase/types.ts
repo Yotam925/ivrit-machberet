@@ -66,7 +66,7 @@ export type UserProgress = {
   completed_at: string | null;
 };
 
-export type ExerciseType = "flashcards" | "quiz";
+export type ExerciseType = "flashcards" | "quiz" | "reading";
 export type ExerciseMode = "exercise" | "test";
 
 export const EXERCISE_MODE_LABELS_HE: Record<ExerciseMode, string> = {
@@ -74,9 +74,17 @@ export const EXERCISE_MODE_LABELS_HE: Record<ExerciseMode, string> = {
   test: "מבחן",
 };
 
+export const EXERCISE_TYPE_LABELS_HE: Record<ExerciseType, string> = {
+  flashcards: "כרטיסיות",
+  quiz: "מבחן אמריקאי",
+  reading: "קטעי קריאה",
+};
+
 export type FlashcardItem = { term: string; definition: string };
 
 export type QuizItem = { question: string; options: string[]; correctIndex: number };
+
+export type ReadingItem = { title: string; body: string };
 
 export type ExerciseRecord = {
   id: string;
@@ -84,7 +92,37 @@ export type ExerciseRecord = {
   type: ExerciseType;
   mode: ExerciseMode;
   created_by: string;
-  items: FlashcardItem[] | QuizItem[];
+  items: FlashcardItem[] | QuizItem[] | ReadingItem[];
+  created_at: string;
+};
+
+export type ExerciseAttempt = {
+  id: string;
+  /** null once the exercise itself is deleted — the snapshot below survives */
+  exercise_id: string | null;
+  user_id: string;
+  score: number;
+  total: number;
+  exercise_title: string | null;
+  exercise_mode: ExerciseMode | null;
+  created_at: string;
+};
+
+export type ExerciseAssignment = {
+  id: string;
+  exercise_id: string;
+  learner_id: string;
+  assigned_by: string;
+  created_at: string;
+};
+
+/** A soldier as the commander's roster shows them. */
+export type SoldierSummary = {
+  id: string;
+  full_name: string;
+  native_language: string | null;
+  level: UserLevel | null;
+  commander_id: string | null;
   created_at: string;
 };
 

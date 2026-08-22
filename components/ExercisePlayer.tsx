@@ -6,14 +6,25 @@ import {
   type ExerciseRecord,
   type FlashcardItem,
   type QuizItem,
+  type ReadingItem,
 } from "@/lib/supabase/types";
 import { AlmCheckIcon, AlmPlusIcon, CardStack } from "@/components/exercises/CardStack";
 
-export function ExercisePlayer({ exercise }: { exercise: ExerciseRecord }) {
+export function ExercisePlayer({
+  exercise,
+  /** false in the commander's preview, so a rehearsal never lands in the grades */
+  recordAttempts = true,
+}: {
+  exercise: ExerciseRecord;
+  recordAttempts?: boolean;
+}) {
   if (exercise.type === "flashcards") {
     return <FlashcardStack exercise={exercise} />;
   }
-  return <QuizStack exercise={exercise} />;
+  if (exercise.type === "reading") {
+    return <ReadingStack exercise={exercise} />;
+  }
+  return <QuizStack exercise={exercise} recordAttempts={recordAttempts} />;
 }
 
 function AlmanacIntro({
@@ -45,14 +56,41 @@ function AnsweredDot({ on }: { on: boolean }) {
 
 /* ---------- quiz: one question per card ---------- */
 
-function QuizStack({ exercise }: { exercise: ExerciseRecord }) {
+function QuizStack({
+  exercise,
+  recordAttempts,
+}: {
+  exercise: ExerciseRecord;
+  recordAttempts: boolean;
+}) {
   const questions = exercise.items as QuizItem[];
   const [answers, setAnswers] = useState<(number | null)[]>(questions.map(() => null));
   const [submitted, setSubmitted] = useState(false);
+  const [saveFailed, setSaveFailed] = useState(false);
 
   function selectAnswer(qIndex: number, optionIndex: number) {
     if (submitted) return;
     setAnswers((prev) => prev.map((a, i) => (i === qIndex ? optionIndex : a)));
+  }
+
+  async function handleSubmit() {
+    setSubmitted(true);
+
+    if (!recordAttempts) return;
+    try {
+      // the server re-grades from the exercise itself; we only send the answers
+      const res = await fetch("/api/attempts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          exercise_id: exercise.id,
+          answers: answers.map((a) => a ?? -1),
+        }),
+      });
+      if (!res.ok) setSaveFailed(true);
+    } catch {
+      setSaveFailed(true);
+    }
   }
 
   const allAnswered = answers.every((a) => a !== null);
@@ -126,7 +164,11 @@ function QuizStack({ exercise }: { exercise: ExerciseRecord }) {
       <AlmanacIntro
         eyebrow={`${EXERCISE_MODE_LABELS_HE[exercise.mode]} · ${questions.length} שאלות`}
         title={exercise.title}
-        sub="גללו כדי לעבור בין השאלות — כל שאלה נצמדת למסך, והבאה עולה מעליה. בסוף, שלחו את התשובות וקבלו ציון."
+        sub={
+          recordAttempts
+            ? "גללו כדי לעבור בין השאלות — כל שאלה נצמדת למסך, והבאה עולה מעליה. בסוף שלחו את התשובות; התוצאה תישמר ותוצג למפקד/ת שלכם."
+            : "גללו כדי לעבור בין השאלות — כל שאלה נצמדת למסך, והבאה עולה מעליה. בסוף שלחו את התשובות וקבלו ציון."
+        }
       />
       <CardStack cards={cards} cardLabel="שאלה" />
       <div className="alm-actions">
@@ -135,7 +177,7 @@ function QuizStack({ exercise }: { exercise: ExerciseRecord }) {
             <button
               type="button"
               disabled={!allAnswered}
-              onClick={() => setSubmitted(true)}
+              onClick={handleSubmit}
               className="alm-primary"
             >
               שלחו תשובות
@@ -153,9 +195,21 @@ function QuizStack({ exercise }: { exercise: ExerciseRecord }) {
             )}
           </>
         ) : (
-          <p className="alm-score" role="status">
-            התוצאה שלך: {score} מתוך {questions.length}
-          </p>
+          <>
+            <p className="alm-score" role="status">
+              התוצאה שלך: {score} מתוך {questions.length}
+            </p>
+            {recordAttempts && !saveFailed && (
+              <p className="alm-intro__sub" style={{ margin: 0 }}>
+                התוצאה נשמרה ונשלחה למפקד/ת שלכם.
+              </p>
+            )}
+            {saveFailed && (
+              <p className="alm-error" role="alert">
+                התוצאה הוצגה אך לא נשמרה למפקד/ת — בדקו את החיבור ונסו שוב מאוחר יותר.
+              </p>
+            )}
+          </>
         )}
       </div>
     </>
@@ -205,6 +259,55 @@ function FlashcardStack({ exercise }: { exercise: ExerciseRecord }) {
         sub="גללו כדי לעבור בין הכרטיסיות, ולחצו על כרטיסייה כדי להפוך בין המונח להגדרה."
       />
       <CardStack cards={cards} cardLabel="כרטיסייה" />
+    </>
+  );
+}
+
+/* ---------- reading passages: one passage per card ---------- */
+
+function ReadingStack({ exercise }: { exercise: ExerciseRecord }) {
+  const items = exercise.items as ReadingItem[];
+  const [read, setRead] = useState<boolean[]>(items.map(() => false));
+
+  const cards = items.map((item, index) => ({
+    key: `r-${index}`,
+    content: (
+      <>
+        <p className="alm-card__date alm-reveal d1">
+          קטע {index + 1} מתוך {items.length}
+        </p>
+        <p className="alm-card__text alm-reveal d2">{item.title}</p>
+        <p className="alm-passage alm-reveal d2">{item.body}</p>
+        <div className="alm-card__foot alm-reveal d3">
+          <button
+            type="button"
+            aria-pressed={read[index]}
+            onClick={() => setRead((prev) => prev.map((r, i) => (i === index ? !r : r)))}
+            className="alm-tag"
+          >
+            {read[index] ? "סומן כנקרא — לחצו לביטול" : "סמנו כנקרא"}
+          </button>
+          <AnsweredDot on={read[index]} />
+        </div>
+      </>
+    ),
+  }));
+
+  const readCount = read.filter(Boolean).length;
+
+  return (
+    <>
+      <AlmanacIntro
+        eyebrow={`קטעי קריאה · ${items.length} קטעים`}
+        title={exercise.title}
+        sub="גללו כדי לעבור בין הקטעים. קראו כל קטע בקצב שלכם וסמנו אותו כשסיימתם."
+      />
+      <CardStack cards={cards} cardLabel="קטע" />
+      <div className="alm-actions">
+        <p className="alm-score" role="status">
+          קראתם {readCount} מתוך {items.length} קטעים
+        </p>
+      </div>
     </>
   );
 }

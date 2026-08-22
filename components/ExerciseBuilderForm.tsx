@@ -12,6 +12,7 @@ import { CardStack } from "@/components/exercises/CardStack";
 
 type FlashcardDraft = { term: string; definition: string };
 type QuizDraft = { question: string; options: string[]; correctIndex: number };
+type ReadingDraft = { title: string; body: string };
 
 function emptyFlashcards(count: number): FlashcardDraft[] {
   return Array.from({ length: count }, () => ({ term: "", definition: "" }));
@@ -25,6 +26,10 @@ function emptyQuiz(count: number): QuizDraft[] {
   return Array.from({ length: count }, () => emptyQuizItem());
 }
 
+function emptyReading(count: number): ReadingDraft[] {
+  return Array.from({ length: count }, () => ({ title: "", body: "" }));
+}
+
 export function ExerciseBuilderForm() {
   const router = useRouter();
   const [type, setType] = useState<ExerciseType>("flashcards");
@@ -32,6 +37,7 @@ export function ExerciseBuilderForm() {
   const [title, setTitle] = useState("");
   const [flashcards, setFlashcards] = useState<FlashcardDraft[]>(emptyFlashcards(10));
   const [quiz, setQuiz] = useState<QuizDraft[]>(emptyQuiz(10));
+  const [reading, setReading] = useState<ReadingDraft[]>(emptyReading(3));
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -75,6 +81,18 @@ export function ExerciseBuilderForm() {
     setQuiz((prev) => prev.filter((_, i) => i !== index));
   }
 
+  function updateReading(index: number, field: keyof ReadingDraft, value: string) {
+    setReading((prev) => prev.map((p, i) => (i === index ? { ...p, [field]: value } : p)));
+  }
+
+  function addReading() {
+    setReading((prev) => [...prev, { title: "", body: "" }]);
+  }
+
+  function removeReading(index: number) {
+    setReading((prev) => prev.filter((_, i) => i !== index));
+  }
+
   async function handleSubmit() {
     setError(null);
 
@@ -83,12 +101,19 @@ export function ExerciseBuilderForm() {
       return;
     }
 
-    let items: FlashcardDraft[] | QuizDraft[];
+    let items: FlashcardDraft[] | QuizDraft[] | ReadingDraft[];
 
     if (type === "flashcards") {
       const cleaned = flashcards.filter((c) => c.term.trim() && c.definition.trim());
       if (cleaned.length === 0) {
         setError("יש למלא לפחות כרטיסייה אחת (מונח + הגדרה)");
+        return;
+      }
+      items = cleaned;
+    } else if (type === "reading") {
+      const cleaned = reading.filter((p) => p.title.trim() && p.body.trim());
+      if (cleaned.length === 0) {
+        setError("יש למלא לפחות קטע קריאה אחד (כותרת + תוכן)");
         return;
       }
       items = cleaned;
@@ -169,6 +194,40 @@ export function ExerciseBuilderForm() {
         <div className="alm-card__foot alm-reveal d3">
           <button type="button" onClick={() => removeFlashcard(index)} className="alm-tag">
             הסרת כרטיסייה
+          </button>
+        </div>
+      </>
+    ),
+  }));
+
+  const readingCards = reading.map((passage, index) => ({
+    key: `rd-${index}`,
+    content: (
+      <>
+        <p className="alm-card__date alm-reveal d1">
+          קטע {index + 1} מתוך {reading.length}
+        </p>
+        <div className="alm-card__fields alm-reveal d2">
+          <input
+            value={passage.title}
+            onChange={(e) => updateReading(index, "title", e.target.value)}
+            className="alm-input"
+            placeholder="כותרת הקטע"
+            style={{ fontWeight: 600 }}
+            aria-label={`קטע ${index + 1} — כותרת`}
+          />
+          <textarea
+            value={passage.body}
+            onChange={(e) => updateReading(index, "body", e.target.value)}
+            className="alm-input"
+            placeholder="תוכן הקטע לקריאה..."
+            rows={7}
+            aria-label={`קטע ${index + 1} — תוכן`}
+          />
+        </div>
+        <div className="alm-card__foot alm-reveal d3">
+          <button type="button" onClick={() => removeReading(index)} className="alm-tag">
+            הסרת קטע
           </button>
         </div>
       </>
@@ -267,6 +326,13 @@ export function ExerciseBuilderForm() {
             >
               מבחן אמריקאי
             </button>
+            <button
+              type="button"
+              onClick={() => setType("reading")}
+              className={`alm-choice ${type === "reading" ? "-active" : ""}`}
+            >
+              קטעי קריאה
+            </button>
           </div>
         </div>
         <div>
@@ -286,19 +352,25 @@ export function ExerciseBuilderForm() {
         </div>
       </div>
 
-      {type === "flashcards" ? (
+      {type === "flashcards" && (
         <CardStack key="flashcards" cards={flashcardCards} cardLabel="כרטיסייה" />
-      ) : (
-        <CardStack key="quiz" cards={quizCards} cardLabel="שאלה" />
       )}
+      {type === "quiz" && <CardStack key="quiz" cards={quizCards} cardLabel="שאלה" />}
+      {type === "reading" && <CardStack key="reading" cards={readingCards} cardLabel="קטע" />}
 
       <div className="alm-actions">
         <button
           type="button"
-          onClick={type === "flashcards" ? addFlashcard : addQuizQuestion}
+          onClick={
+            type === "flashcards" ? addFlashcard : type === "reading" ? addReading : addQuizQuestion
+          }
           className="alm-secondary"
         >
-          {type === "flashcards" ? "+ הוספת כרטיסייה" : "+ הוספת שאלה"}
+          {type === "flashcards"
+            ? "+ הוספת כרטיסייה"
+            : type === "reading"
+              ? "+ הוספת קטע"
+              : "+ הוספת שאלה"}
         </button>
         {error && (
           <p className="alm-error" role="alert">

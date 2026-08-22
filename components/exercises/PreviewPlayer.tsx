@@ -26,7 +26,7 @@ export function PreviewPlayer({ exercise }: { exercise: ExerciseRecord }) {
         </div>
       </div>
 
-      <ExercisePlayer key={runId} exercise={exercise} />
+      <ExercisePlayer key={runId} exercise={exercise} recordAttempts={false} />
     </>
   );
 }

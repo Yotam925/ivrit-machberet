@@ -1,11 +1,20 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import type { ExerciseMode, ExerciseType, FlashcardItem, QuizItem } from "@/lib/supabase/types";
+import type {
+  ExerciseMode,
+  ExerciseType,
+  FlashcardItem,
+  QuizItem,
+  ReadingItem,
+} from "@/lib/supabase/types";
 
-const VALID_TYPES: ExerciseType[] = ["flashcards", "quiz"];
+const VALID_TYPES: ExerciseType[] = ["flashcards", "quiz", "reading"];
 const VALID_MODES: ExerciseMode[] = ["exercise", "test"];
 
-function validateItems(type: ExerciseType, items: unknown): items is FlashcardItem[] | QuizItem[] {
+function validateItems(
+  type: ExerciseType,
+  items: unknown,
+): items is FlashcardItem[] | QuizItem[] | ReadingItem[] {
   if (!Array.isArray(items) || items.length === 0) return false;
 
   if (type === "flashcards") {
@@ -17,6 +26,18 @@ function validateItems(type: ExerciseType, items: unknown): items is FlashcardIt
         (item as FlashcardItem).term.trim() &&
         typeof (item as FlashcardItem).definition === "string" &&
         (item as FlashcardItem).definition.trim(),
+    );
+  }
+
+  if (type === "reading") {
+    return items.every(
+      (item) =>
+        item &&
+        typeof item === "object" &&
+        typeof (item as ReadingItem).title === "string" &&
+        (item as ReadingItem).title.trim() &&
+        typeof (item as ReadingItem).body === "string" &&
+        (item as ReadingItem).body.trim(),
     );
   }
 

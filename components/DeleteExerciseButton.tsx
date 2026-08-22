@@ -8,7 +8,13 @@ export function DeleteExerciseButton({ exerciseId }: { exerciseId: string }) {
   const [pending, setPending] = useState(false);
 
   async function handleDelete() {
-    if (!confirm("למחוק את התרגיל? הפעולה אינה הפיכה.")) return;
+    if (
+      !confirm(
+        "למחוק את התרגיל?\n\nהתרגיל יוסר מכל החיילים ששלחתם אליו. הציונים שכבר נרשמו יישמרו בהיסטוריה של כל חייל/ת. הפעולה אינה הפיכה.",
+      )
+    ) {
+      return;
+    }
 
     setPending(true);
     const res = await fetch(`/api/exercises/${exerciseId}`, { method: "DELETE" });

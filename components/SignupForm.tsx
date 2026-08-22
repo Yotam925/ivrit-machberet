@@ -39,6 +39,22 @@ export function SignupForm({ commanders }: { commanders: CommanderOption[] }) {
         </div>
       </div>
 
+      {role === "commander" && (
+        <label className="flex flex-col gap-1">
+          <span className="text-sm font-medium text-gray-700">קוד הזמנה למפקדים</span>
+          <input
+            name="commander_invite"
+            type="text"
+            required
+            className="rounded-lg border border-gray-300 px-3 py-2 text-base focus:border-blue-500 focus:outline-none"
+            placeholder="קוד שקיבלתם ממפקד/ת קיים/ת"
+          />
+          <span className="text-xs text-gray-500">
+            חשבון מפקד/ת נותן גישה לפרטי החיילים, ולכן נפתח רק עם קוד הזמנה.
+          </span>
+        </label>
+      )}
+
       {role === "learner" && (
         <label className="flex flex-col gap-1">
           <span className="text-sm font-medium text-gray-700">מפקד/ת אישי/ת</span>
@@ -63,6 +79,9 @@ export function SignupForm({ commanders }: { commanders: CommanderOption[] }) {
               ))}
             </select>
           )}
+          <span className="text-xs text-gray-500">
+            השם, רמת העברית ותוצאות המבחנים שלכם גלויים למפקד/ת שמלווה אתכם.
+          </span>
         </label>
       )}
 
