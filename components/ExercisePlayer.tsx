@@ -1,13 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import type { ExerciseRecord, FlashcardItem, QuizItem } from "@/lib/supabase/types";
+import { EXERCISE_MODE_LABELS_HE, type ExerciseRecord, type FlashcardItem, type QuizItem } from "@/lib/supabase/types";
 
 export function ExercisePlayer({ exercise }: { exercise: ExerciseRecord }) {
+  const title = `${EXERCISE_MODE_LABELS_HE[exercise.mode]}: ${exercise.title}`;
   if (exercise.type === "flashcards") {
-    return <FlashcardPlayer title={exercise.title} cards={exercise.items as FlashcardItem[]} />;
+    return <FlashcardPlayer title={title} cards={exercise.items as FlashcardItem[]} />;
   }
-  return <QuizPlayer title={exercise.title} questions={exercise.items as QuizItem[]} />;
+  return <QuizPlayer title={title} questions={exercise.items as QuizItem[]} />;
 }
 
 function FlashcardPlayer({ title, cards }: { title: string; cards: FlashcardItem[] }) {

@@ -61,9 +61,15 @@ export async function signUp(formData: FormData) {
   const roleValue = formData.get("role");
   const role: UserRole | null =
     roleValue === "learner" || roleValue === "commander" ? roleValue : null;
+  const commanderId = String(formData.get("commander_id") ?? "").trim();
 
   if (!email || !password || !fullName || !role) {
     failWith("נא למלא את כל השדות הנדרשים ולבחור סוג משתמש", "signup");
+    return;
+  }
+
+  if (role === "learner" && !commanderId) {
+    failWith("נא לבחור מפקד/ת אישי/ת", "signup");
     return;
   }
 
@@ -76,6 +82,7 @@ export async function signUp(formData: FormData) {
         role,
         full_name: fullName,
         native_language: nativeLanguage || null,
+        commander_id: role === "learner" ? commanderId : null,
       },
     },
   });

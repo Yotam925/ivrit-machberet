@@ -1,6 +1,9 @@
-import { signIn, signUp } from "./actions";
+import { signIn } from "./actions";
 import { isSupabaseConfigured } from "@/lib/supabase/is-configured";
 import { SupabaseSetupNotice } from "@/components/SupabaseSetupNotice";
+import { SignupForm } from "@/components/SignupForm";
+import { createClient } from "@/lib/supabase/server";
+import type { CommanderOption } from "@/lib/supabase/types";
 
 type SearchParams = {
   mode?: string;
@@ -8,12 +11,23 @@ type SearchParams = {
   message?: string;
 };
 
-export default function LoginPage({ searchParams }: { searchParams: SearchParams }) {
+export default async function LoginPage({ searchParams }: { searchParams: SearchParams }) {
   if (!isSupabaseConfigured()) {
     return <SupabaseSetupNotice />;
   }
 
   const mode = searchParams.mode === "signup" ? "signup" : "signin";
+
+  let commanders: CommanderOption[] = [];
+  if (mode === "signup") {
+    const supabase = createClient();
+    const { data } = await supabase
+      .from("profiles")
+      .select("id, full_name")
+      .eq("role", "commander")
+      .order("full_name", { ascending: true });
+    commanders = data ?? [];
+  }
 
   return (
     <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center gap-6 px-6 py-12">
@@ -40,26 +54,7 @@ export default function LoginPage({ searchParams }: { searchParams: SearchParams
           <SubmitButton>התחברות</SubmitButton>
         </form>
       ) : (
-        <form action={signUp} className="flex flex-col gap-4">
-          <Field label="שם מלא" name="full_name" type="text" required />
-          <Field label="אימייל" name="email" type="email" required />
-          <Field label="סיסמה" name="password" type="password" required minLength={6} />
-          <Field label="שפת אם (לא חובה)" name="native_language" type="text" />
-          <div className="flex flex-col gap-2">
-            <span className="text-sm font-medium text-gray-700">סוג משתמש</span>
-            <div className="flex gap-4">
-              <label className="flex items-center gap-2">
-                <input type="radio" name="role" value="learner" defaultChecked />
-                חניך/ה
-              </label>
-              <label className="flex items-center gap-2">
-                <input type="radio" name="role" value="commander" />
-                מפקד/ת · מדריך/ה
-              </label>
-            </div>
-          </div>
-          <SubmitButton>הרשמה</SubmitButton>
-        </form>
+        <SignupForm commanders={commanders} />
       )}
 
       <p className="text-center text-sm text-gray-600">

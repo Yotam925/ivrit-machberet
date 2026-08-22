@@ -13,8 +13,11 @@ export type Profile = {
   full_name: string;
   native_language: string | null;
   level: UserLevel | null;
+  commander_id: string | null;
   created_at: string;
 };
+
+export type CommanderOption = { id: string; full_name: string };
 
 export type LessonCategory = "hebrew" | "army" | "zionism";
 
@@ -64,6 +67,12 @@ export type UserProgress = {
 };
 
 export type ExerciseType = "flashcards" | "quiz";
+export type ExerciseMode = "exercise" | "test";
+
+export const EXERCISE_MODE_LABELS_HE: Record<ExerciseMode, string> = {
+  exercise: "תרגיל",
+  test: "מבחן",
+};
 
 export type FlashcardItem = { term: string; definition: string };
 
@@ -73,6 +82,7 @@ export type ExerciseRecord = {
   id: string;
   title: string;
   type: ExerciseType;
+  mode: ExerciseMode;
   created_by: string;
   items: FlashcardItem[] | QuizItem[];
   created_at: string;

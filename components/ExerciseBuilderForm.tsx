@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import type { ExerciseType } from "@/lib/supabase/types";
+import { EXERCISE_MODE_LABELS_HE, type ExerciseMode, type ExerciseType } from "@/lib/supabase/types";
 
 type FlashcardDraft = { term: string; definition: string };
 type QuizDraft = { question: string; options: string[]; correctIndex: number };
@@ -22,6 +22,7 @@ function emptyQuiz(count: number): QuizDraft[] {
 export function ExerciseBuilderForm() {
   const router = useRouter();
   const [type, setType] = useState<ExerciseType>("flashcards");
+  const [mode, setMode] = useState<ExerciseMode>("exercise");
   const [title, setTitle] = useState("");
   const [flashcards, setFlashcards] = useState<FlashcardDraft[]>(emptyFlashcards(10));
   const [quiz, setQuiz] = useState<QuizDraft[]>(emptyQuiz(10));
@@ -116,7 +117,7 @@ export function ExerciseBuilderForm() {
     const res = await fetch("/api/exercises", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title, type, items }),
+      body: JSON.stringify({ title, type, mode, items }),
     });
     setSubmitting(false);
 
@@ -166,6 +167,26 @@ export function ExerciseBuilderForm() {
           >
             מבחן אמריקאי
           </button>
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <label className="text-sm font-medium">האם זה תרגיל (לתרגול חופשי) או מבחן (רשמי)?</label>
+        <div className="flex gap-3">
+          {(Object.keys(EXERCISE_MODE_LABELS_HE) as ExerciseMode[]).map((option) => (
+            <button
+              key={option}
+              type="button"
+              onClick={() => setMode(option)}
+              className={`rounded-lg border px-4 py-2 text-sm font-medium ${
+                mode === option
+                  ? "border-blue-600 bg-blue-50 text-blue-700"
+                  : "border-gray-300 text-gray-600"
+              }`}
+            >
+              {EXERCISE_MODE_LABELS_HE[option]}
+            </button>
+          ))}
         </div>
       </div>
 

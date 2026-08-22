@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/is-configured";
 import { SupabaseSetupNotice } from "@/components/SupabaseSetupNotice";
-import type { ExerciseRecord } from "@/lib/supabase/types";
+import { EXERCISE_MODE_LABELS_HE, type ExerciseRecord } from "@/lib/supabase/types";
 import { DeleteExerciseButton } from "@/components/DeleteExerciseButton";
 
 const TYPE_LABELS_HE: Record<ExerciseRecord["type"], string> = {
@@ -55,7 +55,8 @@ export default async function CommanderExercisesPage() {
               <div>
                 <p className="font-medium">{exercise.title}</p>
                 <p className="text-sm text-gray-500">
-                  {TYPE_LABELS_HE[exercise.type]} · {exercise.items.length} פריטים
+                  {EXERCISE_MODE_LABELS_HE[exercise.mode]} · {TYPE_LABELS_HE[exercise.type]} ·{" "}
+                  {exercise.items.length} פריטים
                 </p>
               </div>
               <DeleteExerciseButton exerciseId={exercise.id} />

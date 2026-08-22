@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/is-configured";
 import { SupabaseSetupNotice } from "@/components/SupabaseSetupNotice";
-import type { ExerciseRecord } from "@/lib/supabase/types";
+import { EXERCISE_MODE_LABELS_HE, type ExerciseRecord } from "@/lib/supabase/types";
 
 const TYPE_LABELS_HE: Record<ExerciseRecord["type"], string> = {
   flashcards: "כרטיסיות",
@@ -24,6 +24,15 @@ export default async function LearnerExercisesPage() {
     redirect("/login");
   }
 
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("commander_id")
+    .eq("id", user.id)
+    .single();
+
+  // RLS on public.exercises already restricts rows to the caller's own
+  // linked commander (or the caller's own, for a commander) — no extra
+  // filter needed here.
   const { data: exercises } = await supabase
     .from("exercises")
     .select("*")
@@ -33,8 +42,13 @@ export default async function LearnerExercisesPage() {
     <main className="mx-auto flex min-h-screen max-w-2xl flex-col gap-6 px-6 py-10">
       <h1 className="text-2xl font-bold">תרגילים ומבחנים</h1>
 
-      {!exercises || exercises.length === 0 ? (
-        <p className="text-gray-600">עדיין לא נוספו תרגילים.</p>
+      {!profile?.commander_id ? (
+        <p className="text-gray-600">
+          עדיין לא משויך/ת למפקד/ת אישי/ת, ולכן אין תרגילים להצגה. פני/ה למפקד/ת שלך כדי לוודא
+          שהם רשומים במערכת.
+        </p>
+      ) : !exercises || exercises.length === 0 ? (
+        <p className="text-gray-600">המפקד/ת שלך עדיין לא הוסיף/ה תרגילים.</p>
       ) : (
         <ul className="flex flex-col gap-3">
           {(exercises as ExerciseRecord[]).map((exercise) => (
@@ -45,7 +59,8 @@ export default async function LearnerExercisesPage() {
               >
                 <p className="font-medium">{exercise.title}</p>
                 <p className="text-sm text-gray-500">
-                  {TYPE_LABELS_HE[exercise.type]} · {exercise.items.length} פריטים
+                  {EXERCISE_MODE_LABELS_HE[exercise.mode]} · {TYPE_LABELS_HE[exercise.type]} ·{" "}
+                  {exercise.items.length} פריטים
                 </p>
               </Link>
             </li>
