@@ -63,6 +63,21 @@ export type UserProgress = {
   completed_at: string | null;
 };
 
+export type ExerciseType = "flashcards" | "quiz";
+
+export type FlashcardItem = { term: string; definition: string };
+
+export type QuizItem = { question: string; options: string[]; correctIndex: number };
+
+export type ExerciseRecord = {
+  id: string;
+  title: string;
+  type: ExerciseType;
+  created_by: string;
+  items: FlashcardItem[] | QuizItem[];
+  created_at: string;
+};
+
 export function isPlayableLessonContent(content: unknown): content is LessonContent {
   return (
     typeof content === "object" &&

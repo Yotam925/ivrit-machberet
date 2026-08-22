@@ -46,6 +46,9 @@ export default async function LearnerDashboardPage() {
       >
         השיעורים שלי
       </Link>
+      <Link href="/learner/exercises" className="text-sm font-medium text-blue-600 hover:underline">
+        תרגילים ומבחנים
+      </Link>
       <form action={signOut}>
         <button type="submit" className="text-sm font-medium text-blue-600 hover:underline">
           התנתקות
