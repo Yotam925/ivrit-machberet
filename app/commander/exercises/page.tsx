@@ -50,15 +50,23 @@ export default async function CommanderExercisesPage() {
           {(exercises as ExerciseRecord[]).map((exercise) => (
             <li
               key={exercise.id}
-              className="flex items-center justify-between rounded-lg border border-gray-200 px-4 py-3"
+              className="flex items-center justify-between gap-4 rounded-lg border border-gray-200 px-4 py-3"
             >
-              <div>
-                <p className="font-medium">{exercise.title}</p>
+              <Link
+                href={`/commander/exercises/${exercise.id}`}
+                className="group flex-1 rounded-md"
+              >
+                <p className="font-medium group-hover:text-blue-700 group-hover:underline">
+                  {exercise.title}
+                </p>
                 <p className="text-sm text-gray-500">
                   {EXERCISE_MODE_LABELS_HE[exercise.mode]} · {TYPE_LABELS_HE[exercise.type]} ·{" "}
                   {exercise.items.length} פריטים
                 </p>
-              </div>
+                <p className="mt-1 text-xs font-medium text-blue-600">
+                  לחצו לתצוגה מקדימה — כפי שהחייל רואה
+                </p>
+              </Link>
               <DeleteExerciseButton exerciseId={exercise.id} />
             </li>
           ))}

@@ -299,6 +299,57 @@ button.alm-tag:hover {
   flex: none;
 }
 
+/* commander preview banner (sits above the intro, scrolls away with it) */
+.alm-banner {
+  width: min(80vw, 1080px);
+  margin: 0 auto;
+  padding: clamp(14px, 1.6vw, 18px) clamp(16px, 2vw, 24px);
+  margin-top: clamp(20px, 4vh, 40px);
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--alm-accent) 35%, transparent);
+  background: color-mix(in srgb, var(--alm-accent) 8%, #ffffff);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.alm-banner__text {
+  margin: 0;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: #8a3b12;
+}
+.alm-banner__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.alm-banner__btn {
+  border: 1px solid color-mix(in srgb, var(--alm-accent) 40%, transparent);
+  background: #ffffff;
+  border-radius: 999px;
+  padding: 7px 16px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--alm-accent);
+  cursor: pointer;
+  text-decoration: none;
+  white-space: nowrap;
+  transition:
+    background 0.18s ease,
+    color 0.18s ease;
+}
+.alm-banner__btn:hover {
+  background: var(--alm-accent);
+  color: #ffffff;
+}
+.alm-banner__btn:focus-visible {
+  outline: 2px solid var(--alm-accent);
+  outline-offset: 3px;
+}
+
 /* non-card panel (builder settings) + bottom actions */
 .alm-panel {
   width: min(80vw, 1080px);
@@ -445,7 +496,8 @@ button.alm-tag:hover {
 @media (max-width: 900px) {
   .alm-stack,
   .alm-panel,
-  .alm-actions {
+  .alm-actions,
+  .alm-banner {
     width: 86vw;
   }
   .alm-card {
@@ -458,8 +510,14 @@ button.alm-tag:hover {
   }
   .alm-stack,
   .alm-panel,
-  .alm-actions {
+  .alm-actions,
+  .alm-banner {
     width: 92vw;
+  }
+  .alm-banner {
+    border-radius: 20px;
+    justify-content: center;
+    text-align: center;
   }
   .alm-card {
     min-height: 0;
