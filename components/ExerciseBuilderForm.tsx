@@ -1,8 +1,14 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { EXERCISE_MODE_LABELS_HE, type ExerciseMode, type ExerciseType } from "@/lib/supabase/types";
+import {
+  EXERCISE_MODE_LABELS_HE,
+  type ExerciseMode,
+  type ExerciseType,
+} from "@/lib/supabase/types";
+import { CardStack } from "@/components/exercises/CardStack";
 
 type FlashcardDraft = { term: string; definition: string };
 type QuizDraft = { question: string; options: string[]; correctIndex: number };
@@ -69,8 +75,7 @@ export function ExerciseBuilderForm() {
     setQuiz((prev) => prev.filter((_, i) => i !== index));
   }
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  async function handleSubmit() {
     setError(null);
 
     if (!title.trim()) {
@@ -104,188 +109,209 @@ export function ExerciseBuilderForm() {
           return;
         }
       }
-      items = cleaned.map((q) => ({
-        question: q.question,
-        options: q.options.filter((o) => o.trim()),
-        correctIndex: q.options
-          .filter((o) => o.trim())
-          .indexOf(q.options[q.correctIndex]),
-      }));
+      // remap correctIndex by POSITION, not by value — indexOf would point at
+      // the first duplicate when two options share the same text
+      items = cleaned.map((q) => {
+        const kept = q.options.map((option, i) => ({ option, i })).filter((x) => x.option.trim());
+        return {
+          question: q.question,
+          options: kept.map((x) => x.option),
+          correctIndex: kept.findIndex((x) => x.i === q.correctIndex),
+        };
+      });
     }
 
     setSubmitting(true);
-    const res = await fetch("/api/exercises", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title, type, mode, items }),
-    });
-    setSubmitting(false);
+    try {
+      const res = await fetch("/api/exercises", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title, type, mode, items }),
+      });
 
-    if (res.ok) {
-      router.push("/commander/exercises");
-      router.refresh();
-    } else {
-      const data = await res.json().catch(() => null);
-      setError(data?.error ?? "יצירת התרגיל נכשלה");
+      if (res.ok) {
+        router.push("/commander/exercises");
+        router.refresh();
+      } else {
+        const data = await res.json().catch(() => null);
+        setError(data?.error ?? "יצירת התרגיל נכשלה");
+      }
+    } catch {
+      setError("יצירת התרגיל נכשלה — בדקו את החיבור לאינטרנט ונסו שוב");
+    } finally {
+      setSubmitting(false);
     }
   }
 
-  return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-      <div className="flex flex-col gap-2">
-        <label className="text-sm font-medium">כותרת</label>
-        <input
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          className="rounded-lg border border-gray-300 px-3 py-2"
-          placeholder="לדוגמה: אוצר מילים - יחידה 3"
-        />
-      </div>
-
-      <div className="flex flex-col gap-2">
-        <label className="text-sm font-medium">סוג</label>
-        <div className="flex gap-3">
-          <button
-            type="button"
-            onClick={() => setType("flashcards")}
-            className={`rounded-lg border px-4 py-2 text-sm font-medium ${
-              type === "flashcards"
-                ? "border-blue-600 bg-blue-50 text-blue-700"
-                : "border-gray-300 text-gray-600"
-            }`}
-          >
-            כרטיסיות (Flashcards)
-          </button>
-          <button
-            type="button"
-            onClick={() => setType("quiz")}
-            className={`rounded-lg border px-4 py-2 text-sm font-medium ${
-              type === "quiz"
-                ? "border-blue-600 bg-blue-50 text-blue-700"
-                : "border-gray-300 text-gray-600"
-            }`}
-          >
-            מבחן אמריקאי
+  const flashcardCards = flashcards.map((card, index) => ({
+    key: `fc-${index}`,
+    content: (
+      <>
+        <p className="alm-card__date alm-reveal d1">
+          כרטיסייה {index + 1} מתוך {flashcards.length}
+        </p>
+        <div className="alm-card__fields alm-reveal d2">
+          <input
+            value={card.term}
+            onChange={(e) => updateFlashcard(index, "term", e.target.value)}
+            className="alm-input"
+            placeholder="מונח / שאלה"
+            aria-label={`כרטיסייה ${index + 1} — מונח`}
+          />
+          <input
+            value={card.definition}
+            onChange={(e) => updateFlashcard(index, "definition", e.target.value)}
+            className="alm-input"
+            placeholder="הגדרה / תשובה"
+            aria-label={`כרטיסייה ${index + 1} — הגדרה`}
+          />
+        </div>
+        <div className="alm-card__foot alm-reveal d3">
+          <button type="button" onClick={() => removeFlashcard(index)} className="alm-tag">
+            הסרת כרטיסייה
           </button>
         </div>
+      </>
+    ),
+  }));
+
+  const quizCards = quiz.map((q, qIndex) => ({
+    key: `qz-${qIndex}`,
+    content: (
+      <>
+        <p className="alm-card__date alm-reveal d1">
+          שאלה {qIndex + 1} מתוך {quiz.length}
+        </p>
+        <div className="alm-card__fields alm-reveal d2">
+          <input
+            value={q.question}
+            onChange={(e) => updateQuizQuestion(qIndex, e.target.value)}
+            className="alm-input"
+            placeholder="נוסח השאלה"
+            style={{ fontWeight: 600 }}
+            aria-label={`שאלה ${qIndex + 1} — נוסח השאלה`}
+          />
+          {q.options.map((option, oIndex) => (
+            <div key={oIndex} className="alm-optionrow">
+              <input
+                type="radio"
+                name={`correct-${qIndex}`}
+                checked={q.correctIndex === oIndex}
+                onChange={() => updateQuizCorrect(qIndex, oIndex)}
+                aria-label={`סמנו את תשובה ${oIndex + 1} של שאלה ${qIndex + 1} כנכונה`}
+              />
+              <input
+                value={option}
+                onChange={(e) => updateQuizOption(qIndex, oIndex, e.target.value)}
+                className="alm-input"
+                placeholder={`תשובה ${oIndex + 1}`}
+                aria-label={`שאלה ${qIndex + 1} — תשובה ${oIndex + 1}`}
+              />
+            </div>
+          ))}
+          <p className="alm-card__date" style={{ margin: 0 }}>
+            סמנו את העיגול שליד התשובה הנכונה
+          </p>
+        </div>
+        <div className="alm-card__foot alm-reveal d3">
+          <button type="button" onClick={() => removeQuizQuestion(qIndex)} className="alm-tag">
+            הסרת שאלה
+          </button>
+        </div>
+      </>
+    ),
+  }));
+
+  return (
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        handleSubmit();
+      }}
+    >
+      <div className="alm-intro">
+        <p className="alm-intro__eyebrow">אזור המפקד · {EXERCISE_MODE_LABELS_HE[mode]}</p>
+        <h1 className="alm-intro__title">צור תרגיל/מבחן</h1>
+        <p className="alm-intro__sub">
+          כל שאלה היא כרטיס — בדיוק כמו שהחיילים שלכם יראו אותה. גללו כדי לעבור בין הכרטיסים,
+          מלאו אותם, ובסוף שמרו.
+        </p>
       </div>
 
-      <div className="flex flex-col gap-2">
-        <label className="text-sm font-medium">האם זה תרגיל (לתרגול חופשי) או מבחן (רשמי)?</label>
-        <div className="flex gap-3">
-          {(Object.keys(EXERCISE_MODE_LABELS_HE) as ExerciseMode[]).map((option) => (
+      <div className="alm-panel">
+        <div>
+          <p className="alm-label">כותרת</p>
+          <input
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            className="alm-input"
+            placeholder="לדוגמה: אוצר מילים - יחידה 3"
+            style={{ marginTop: 8 }}
+            aria-label="כותרת התרגיל"
+          />
+        </div>
+        <div>
+          <p className="alm-label">סוג</p>
+          <div style={{ display: "flex", gap: 10, marginTop: 8, flexWrap: "wrap" }}>
             <button
-              key={option}
               type="button"
-              onClick={() => setMode(option)}
-              className={`rounded-lg border px-4 py-2 text-sm font-medium ${
-                mode === option
-                  ? "border-blue-600 bg-blue-50 text-blue-700"
-                  : "border-gray-300 text-gray-600"
-              }`}
+              onClick={() => setType("flashcards")}
+              className={`alm-choice ${type === "flashcards" ? "-active" : ""}`}
             >
-              {EXERCISE_MODE_LABELS_HE[option]}
+              כרטיסיות (Flashcards)
             </button>
-          ))}
+            <button
+              type="button"
+              onClick={() => setType("quiz")}
+              className={`alm-choice ${type === "quiz" ? "-active" : ""}`}
+            >
+              מבחן אמריקאי
+            </button>
+          </div>
+        </div>
+        <div>
+          <p className="alm-label">תרגיל או מבחן?</p>
+          <div style={{ display: "flex", gap: 10, marginTop: 8, flexWrap: "wrap" }}>
+            {(Object.keys(EXERCISE_MODE_LABELS_HE) as ExerciseMode[]).map((option) => (
+              <button
+                key={option}
+                type="button"
+                onClick={() => setMode(option)}
+                className={`alm-choice ${mode === option ? "-active" : ""}`}
+              >
+                {EXERCISE_MODE_LABELS_HE[option]}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
       {type === "flashcards" ? (
-        <div className="flex flex-col gap-3">
-          {flashcards.map((card, index) => (
-            <div key={index} className="flex items-start gap-2 rounded-lg border border-gray-200 p-3">
-              <span className="mt-2 w-6 shrink-0 text-sm text-gray-400">{index + 1}.</span>
-              <div className="flex flex-1 flex-col gap-2 sm:flex-row">
-                <input
-                  value={card.term}
-                  onChange={(e) => updateFlashcard(index, "term", e.target.value)}
-                  className="flex-1 rounded-lg border border-gray-300 px-3 py-2"
-                  placeholder="מונח / שאלה"
-                />
-                <input
-                  value={card.definition}
-                  onChange={(e) => updateFlashcard(index, "definition", e.target.value)}
-                  className="flex-1 rounded-lg border border-gray-300 px-3 py-2"
-                  placeholder="הגדרה / תשובה"
-                />
-              </div>
-              <button
-                type="button"
-                onClick={() => removeFlashcard(index)}
-                className="mt-2 shrink-0 text-sm text-red-600 hover:underline"
-              >
-                הסר
-              </button>
-            </div>
-          ))}
-          <button
-            type="button"
-            onClick={addFlashcard}
-            className="self-start text-sm font-medium text-blue-600 hover:underline"
-          >
-            + הוסף כרטיסייה
-          </button>
-        </div>
+        <CardStack key="flashcards" cards={flashcardCards} cardLabel="כרטיסייה" />
       ) : (
-        <div className="flex flex-col gap-4">
-          {quiz.map((q, qIndex) => (
-            <div key={qIndex} className="flex flex-col gap-2 rounded-lg border border-gray-200 p-3">
-              <div className="flex items-center gap-2">
-                <span className="w-6 shrink-0 text-sm text-gray-400">{qIndex + 1}.</span>
-                <input
-                  value={q.question}
-                  onChange={(e) => updateQuizQuestion(qIndex, e.target.value)}
-                  className="flex-1 rounded-lg border border-gray-300 px-3 py-2"
-                  placeholder="נוסח השאלה"
-                />
-                <button
-                  type="button"
-                  onClick={() => removeQuizQuestion(qIndex)}
-                  className="shrink-0 text-sm text-red-600 hover:underline"
-                >
-                  הסר
-                </button>
-              </div>
-              <div className="flex flex-col gap-1.5 pr-8">
-                {q.options.map((option, oIndex) => (
-                  <div key={oIndex} className="flex items-center gap-2">
-                    <input
-                      type="radio"
-                      name={`correct-${qIndex}`}
-                      checked={q.correctIndex === oIndex}
-                      onChange={() => updateQuizCorrect(qIndex, oIndex)}
-                    />
-                    <input
-                      value={option}
-                      onChange={(e) => updateQuizOption(qIndex, oIndex, e.target.value)}
-                      className="flex-1 rounded-lg border border-gray-300 px-3 py-1.5 text-sm"
-                      placeholder={`תשובה ${oIndex + 1}`}
-                    />
-                  </div>
-                ))}
-              </div>
-              <p className="pr-8 text-xs text-gray-500">סמן ליד התשובה הנכונה</p>
-            </div>
-          ))}
-          <button
-            type="button"
-            onClick={addQuizQuestion}
-            className="self-start text-sm font-medium text-blue-600 hover:underline"
-          >
-            + הוסף שאלה
-          </button>
-        </div>
+        <CardStack key="quiz" cards={quizCards} cardLabel="שאלה" />
       )}
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
-
-      <button
-        type="submit"
-        disabled={submitting}
-        className="self-start rounded-lg bg-blue-600 px-5 py-2.5 font-medium text-white hover:bg-blue-700 disabled:opacity-50"
-      >
-        {submitting ? "שומר..." : "שמור תרגיל"}
-      </button>
+      <div className="alm-actions">
+        <button
+          type="button"
+          onClick={type === "flashcards" ? addFlashcard : addQuizQuestion}
+          className="alm-secondary"
+        >
+          {type === "flashcards" ? "+ הוספת כרטיסייה" : "+ הוספת שאלה"}
+        </button>
+        {error && (
+          <p className="alm-error" role="alert">
+            {error}
+          </p>
+        )}
+        <button type="submit" disabled={submitting} className="alm-primary">
+          {submitting ? "שומר..." : "שמירת התרגיל"}
+        </button>
+        <Link href="/commander/exercises" className="alm-secondary">
+          ביטול
+        </Link>
+      </div>
     </form>
   );
 }

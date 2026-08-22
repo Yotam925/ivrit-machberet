@@ -31,11 +31,13 @@ export default async function ExercisePlayerPage({ params }: { params: { id: str
   }
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-2xl flex-col gap-6 px-6 py-10">
+    <main className="almanac">
       <ExercisePlayer exercise={exercise as ExerciseRecord} />
-      <Link href="/learner/exercises" className="text-sm font-medium text-blue-600 hover:underline">
-        חזרה לרשימת התרגילים
-      </Link>
+      <div className="alm-actions">
+        <Link href="/learner/exercises" className="alm-secondary">
+          חזרה לרשימת התרגילים
+        </Link>
+      </div>
     </main>
   );
 }

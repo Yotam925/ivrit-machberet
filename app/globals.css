@@ -43,6 +43,446 @@ body {
   animation: landing-marquee 26s linear infinite;
 }
 
+/* ---------- exercise card stack ("Almanac" design) ---------- */
+
+.almanac {
+  --alm-bg: #f1f0ed;
+  --alm-card: #ffffff;
+  --alm-ink: #1a1917;
+  --alm-muted: rgba(26, 25, 23, 0.5);
+  --alm-faint: rgba(26, 25, 23, 0.32);
+  --alm-line: rgba(26, 25, 23, 0.08);
+  --alm-accent: #ff6a2b;
+  --alm-gap: 46vh;
+  position: relative;
+  min-height: 100svh;
+  background:
+    radial-gradient(120% 80% at 50% -8%, #fbfaf8 0%, var(--alm-bg) 60%),
+    var(--alm-bg);
+  color: var(--alm-ink);
+  font-size: 15px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  padding: 0 clamp(16px, 4vw, 40px) clamp(60px, 12vh, 140px);
+}
+
+.alm-intro {
+  max-width: 640px;
+  margin: 0 auto;
+  text-align: center;
+  padding: clamp(48px, 10vh, 104px) 0 clamp(16px, 3vh, 34px);
+}
+.alm-intro__eyebrow {
+  font-weight: 600;
+  font-size: 12px;
+  line-height: 1;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--alm-accent);
+  margin: 0 0 18px;
+}
+.alm-intro__title {
+  margin: 0;
+  font-size: clamp(34px, 6vw, 64px);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+}
+.alm-intro__sub {
+  margin: 18px auto 0;
+  max-width: 44ch;
+  color: var(--alm-muted);
+  font-size: clamp(14px, 1.4vw, 16.5px);
+}
+
+.alm-stack {
+  width: min(80vw, 1080px);
+  margin: 0 auto;
+}
+.alm-card {
+  position: sticky;
+  top: var(--top, 88px);
+  margin: 0 0 var(--alm-gap);
+  background: var(--alm-card);
+  border-radius: clamp(18px, 2vw, 26px);
+  border: 1px solid var(--alm-line);
+  box-shadow:
+    0 1px 2px rgba(28, 22, 16, 0.06),
+    0 40px 80px -34px rgba(40, 30, 20, 0.4);
+  padding: clamp(18px, 2vw, 28px);
+  display: flex;
+  flex-direction: column;
+  min-height: clamp(300px, 46vh, 480px);
+  transform-origin: 50% 0;
+  will-change: transform, filter;
+}
+.alm-card:last-of-type {
+  margin-bottom: 0;
+}
+.alm-tail {
+  height: clamp(52vh, 66vh, 74vh);
+}
+
+.alm-card__date {
+  margin: 0 0 clamp(12px, 1.4vw, 22px);
+  font-size: clamp(12.5px, 1vw, 14px);
+  color: var(--alm-faint);
+}
+.alm-card__text {
+  margin: 0 0 clamp(14px, 1.6vw, 24px);
+  font-size: clamp(17px, 1.7vw, 24px);
+  line-height: 1.42;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: #2a2825;
+}
+.alm-card__foot {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: clamp(14px, 1.6vw, 22px);
+}
+
+.alm-tag {
+  border: 0;
+  padding: 8px 15px;
+  border-radius: 999px;
+  font-weight: 500;
+  font-size: 12.5px;
+  line-height: 1;
+  font-family: inherit;
+  color: #4a463f;
+  background: #f2f1ee;
+  transition:
+    background 0.18s ease,
+    color 0.18s ease;
+}
+button.alm-tag {
+  cursor: pointer;
+}
+button.alm-tag:hover {
+  background: color-mix(in srgb, var(--alm-accent) 14%, #f2f1ee);
+  color: var(--alm-accent);
+}
+.alm-add {
+  flex: none;
+  width: 42px;
+  height: 42px;
+  border: 0;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  background: var(--alm-ink);
+  transition:
+    background 0.22s ease,
+    transform 0.18s ease;
+}
+.alm-add.-saved {
+  background: var(--alm-accent);
+}
+.alm-add svg {
+  width: 18px;
+  height: 18px;
+}
+.alm-add .i-check {
+  display: none;
+}
+.alm-add.-saved .i-plus {
+  display: none;
+}
+.alm-add.-saved .i-check {
+  display: block;
+}
+
+/* answer options (learner quiz) */
+.alm-card__options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.alm-option {
+  border: 1px solid var(--alm-line);
+  background: #faf9f7;
+  border-radius: 14px;
+  padding: 12px 16px;
+  font: inherit;
+  font-size: clamp(14.5px, 1.2vw, 17px);
+  color: #2a2825;
+  text-align: start;
+  cursor: pointer;
+  transition:
+    background 0.18s ease,
+    border-color 0.18s ease,
+    transform 0.12s ease;
+}
+.alm-option:hover:not(:disabled) {
+  border-color: rgba(26, 25, 23, 0.22);
+  background: #ffffff;
+}
+.alm-option:active:not(:disabled) {
+  transform: scale(0.99);
+}
+.alm-option.-selected {
+  border-color: var(--alm-accent);
+  background: color-mix(in srgb, var(--alm-accent) 9%, #ffffff);
+}
+.alm-option.-correct {
+  border-color: #2e9e5b;
+  background: #ecf8f0;
+}
+.alm-option.-wrong {
+  border-color: #d64545;
+  background: #fdeeee;
+}
+.alm-option:disabled {
+  cursor: default;
+}
+
+/* flashcard flip surface */
+.alm-flip {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+  font-size: clamp(22px, 2.6vw, 34px);
+  font-weight: 600;
+  color: #2a2825;
+  text-align: center;
+  padding: clamp(20px, 4vh, 48px) 10px;
+  border-radius: 14px;
+  transition: background 0.18s ease;
+}
+.alm-flip:hover {
+  background: #faf9f7;
+}
+
+/* builder inputs */
+.alm-card__fields {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.alm-input {
+  width: 100%;
+  border: 1px solid var(--alm-line);
+  background: #faf9f7;
+  border-radius: 12px;
+  padding: 11px 14px;
+  font: inherit;
+  font-size: 15px;
+  color: var(--alm-ink);
+  transition:
+    border-color 0.18s ease,
+    background 0.18s ease;
+}
+.alm-input:focus {
+  outline: none;
+  border-color: var(--alm-accent);
+  background: #ffffff;
+}
+.alm-optionrow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.alm-optionrow input[type="radio"] {
+  accent-color: var(--alm-accent);
+  width: 16px;
+  height: 16px;
+  flex: none;
+}
+
+/* non-card panel (builder settings) + bottom actions */
+.alm-panel {
+  width: min(80vw, 1080px);
+  margin: 0 auto clamp(28px, 5vh, 52px);
+  background: var(--alm-card);
+  border-radius: clamp(18px, 2vw, 26px);
+  border: 1px solid var(--alm-line);
+  box-shadow:
+    0 1px 2px rgba(28, 22, 16, 0.06),
+    0 24px 48px -30px rgba(40, 30, 20, 0.3);
+  padding: clamp(18px, 2vw, 28px);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.alm-label {
+  font-weight: 600;
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--alm-faint);
+}
+.alm-choice {
+  border: 1px solid var(--alm-line);
+  background: #faf9f7;
+  border-radius: 999px;
+  padding: 9px 18px;
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: #4a463f;
+  cursor: pointer;
+  transition:
+    background 0.18s ease,
+    border-color 0.18s ease,
+    color 0.18s ease;
+}
+.alm-choice.-active {
+  border-color: var(--alm-accent);
+  background: color-mix(in srgb, var(--alm-accent) 12%, #ffffff);
+  color: var(--alm-accent);
+}
+.alm-actions {
+  width: min(80vw, 1080px);
+  margin: clamp(24px, 5vh, 48px) auto 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  text-align: center;
+}
+.alm-primary {
+  border: 0;
+  border-radius: 999px;
+  background: var(--alm-ink);
+  color: #fff;
+  font: inherit;
+  font-weight: 600;
+  font-size: 15.5px;
+  padding: 14px 34px;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    transform 0.15s ease;
+}
+.alm-primary:hover:not(:disabled) {
+  background: var(--alm-accent);
+  transform: translateY(-1px);
+}
+.alm-primary:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.alm-secondary {
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--alm-muted);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.alm-secondary:hover {
+  color: var(--alm-accent);
+}
+.alm-score {
+  font-size: clamp(20px, 2.4vw, 30px);
+  font-weight: 700;
+}
+.alm-error {
+  color: #d64545;
+  font-size: 14px;
+}
+
+.alm-tag:focus-visible,
+.alm-option:focus-visible,
+.alm-flip:focus-visible,
+.alm-choice:focus-visible,
+.alm-primary:focus-visible,
+.alm-add:focus-visible {
+  outline: 2px solid var(--alm-accent);
+  outline-offset: 3px;
+}
+
+/* reveal-on-arrival — the stack script toggles .-in when a card reaches its
+   pin. Scoped under .alm-js (added by the script on mount) so server-rendered
+   content stays readable if JS never runs. visibility participates so hidden
+   content is also removed from the keyboard tab order, not just faded out. */
+.alm-js .alm-card .alm-reveal {
+  opacity: 0;
+  transform: translateY(20px);
+  visibility: hidden;
+  transition:
+    opacity 0.6s ease,
+    transform 0.65s cubic-bezier(0.2, 0.7, 0.2, 1),
+    visibility 0s linear 0.65s;
+}
+.alm-js .alm-card.-in .alm-reveal {
+  opacity: 1;
+  transform: none;
+  visibility: visible;
+}
+.alm-js .alm-card.-in .alm-reveal.d1 {
+  transition-delay: 0.12s;
+}
+.alm-js .alm-card.-in .alm-reveal.d2 {
+  transition-delay: 0.2s;
+}
+.alm-js .alm-card.-in .alm-reveal.d3 {
+  transition-delay: 0.3s;
+}
+
+.alm-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+@media (max-width: 900px) {
+  .alm-stack,
+  .alm-panel,
+  .alm-actions {
+    width: 86vw;
+  }
+  .alm-card {
+    min-height: clamp(280px, 42vh, 420px);
+  }
+}
+@media (max-width: 620px) {
+  .almanac {
+    --alm-gap: 34vh;
+  }
+  .alm-stack,
+  .alm-panel,
+  .alm-actions {
+    width: 92vw;
+  }
+  .alm-card {
+    min-height: 0;
+    gap: 0;
+    padding: 16px;
+    border-radius: 20px;
+  }
+  .alm-card__text {
+    font-size: 16.5px;
+  }
+  .alm-tail {
+    height: 44vh;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .alm-js .alm-card .alm-reveal {
+    opacity: 1 !important;
+    transform: none !important;
+    visibility: visible !important;
+    transition: none !important;
+  }
+}
+
 ::-webkit-scrollbar {
   width: 8px;
 }
